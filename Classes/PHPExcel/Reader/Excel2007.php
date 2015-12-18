@@ -1368,9 +1368,11 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                                             // Fetch linked images
                                             $relsVML = simplexml_load_string($this->securityScan($this->getFromZipArchive($zip, dirname($vmlRelationship) . '/_rels/' . basename($vmlRelationship) . '.rels')), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions()); //~ http://schemas.openxmlformats.org/package/2006/relationships");
                                             $drawings = array();
-                                            foreach ($relsVML->Relationship as $ele) {
-                                                if ($ele["Type"] == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image") {
-                                                    $drawings[(string) $ele["Id"]] = self::dirAdd($vmlRelationship, $ele["Target"]);
+                                            if ($relsVML !== false) {
+                                                foreach ($relsVML->Relationship as $ele) {
+                                                    if ($ele["Type"] == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image") {
+                                                        $drawings[(string) $ele["Id"]] = self::dirAdd($vmlRelationship, $ele["Target"]);
+                                                    }
                                                 }
                                             }
 
@@ -1384,6 +1386,9 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                                             foreach ($shapes as $idx => $shape) {
                                                 $shape->registerXPathNamespace('v', 'urn:schemas-microsoft-com:vml');
                                                 $imageData = $shape->xpath('//v:imagedata');
+                                                if (!isset($imageData[$idx])) {
+                                                    continue;
+                                                }
                                                 $imageData = $imageData[$idx];
 
                                                 $imageData = $imageData->attributes('urn:schemas-microsoft-com:office:office');
